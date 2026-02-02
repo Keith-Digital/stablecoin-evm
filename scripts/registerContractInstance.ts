@@ -77,7 +77,11 @@ async function main() {
     console.log("\n✅ Successfully registered Contract API:");
     console.log(JSON.stringify(contractAPI, null, 2));
   } catch (error) {
-    if (error.message && error.message.includes("FF10298")) {
+    if (
+      error instanceof Error &&
+      error.message &&
+      error.message.includes("FF10298")
+    ) {
       console.log(`Contract API '${API_NAME}' already exists.`);
       try {
         const apis = await ff.getContractAPIs();
@@ -87,10 +91,18 @@ async function main() {
           console.log(JSON.stringify(existing, null, 2));
         }
       } catch (listError) {
-        console.error("Error retrieving existing APIs:", listError);
+        if (listError instanceof Error) {
+          console.error("Error retrieving existing APIs:", listError.message);
+        } else {
+          console.error("❌ Error retrieving existing APIs:", listError);
+        }
       }
     } else {
-      console.error("Error registering Contract API:", error.message || error);
+      if (error instanceof Error) {
+        console.error("Error registering Contract API:", error.message);
+      } else {
+        console.error("❌ Error registering Contract API:", error);
+      }
       process.exit(1);
     }
   }

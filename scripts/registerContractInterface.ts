@@ -57,8 +57,8 @@ async function main() {
     console.log(JSON.stringify(contractInterface, null, 2));
   } catch (error) {
     if (
-      error.message.includes("FF10165") ||
-      error.message.includes("FF10407")
+      error instanceof Error &&
+      (error.message.includes("FF10165") || error.message.includes("FF10407"))
     ) {
       console.log(
         `ℹ️  Contract interface '${contractInfo.name}' already exists or conflicts.`
@@ -72,19 +72,33 @@ async function main() {
         if (existing) {
           console.log("Existing contract interface details:");
           console.log(JSON.stringify(existing, null, 2));
-        } else {
-          console.log(
-            `'${contractInfo.name}' interface not found in list, but a conflict was reported.`
-          );
         }
       } catch (listError) {
-        console.error("❌ Error retrieving existing interface:", listError);
+        if (listError instanceof Error) {
+          console.error(
+            "❌ Error retrieving existing interface:",
+            listError.message
+          );
+        } else {
+          console.error("❌ Error retrieving existing interface:", listError);
+        }
       }
     } else {
-      console.error("❌ Error creating contract interface:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error creating contract interface:", error.message);
+      } else {
+        console.error("❌ Error creating contract interface:", error);
+      }
       process.exit(1);
     }
   }
 }
 
-main();
+main().catch((err: unknown) => {
+  if (err instanceof Error) {
+    console.error(err.message);
+  } else {
+    console.error(err);
+  }
+  process.exit(1);
+});
